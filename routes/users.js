@@ -1,20 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
-router.post('/signup', (req, res) => {
-  res.send('회원가입');
-});
+const user = require('../controller/userController');
 
-router.post('/signup', (req, res) => {
-  res.send('회원가입');
-});
+router.get('/:id', user.search);
 
-router.get('/:id', (req, res) => {
-  res.send('회원정보');
-});
+router.post('/signup', user.signup);
 
-router.put('/', (req, res) => {
-  res.send('회원정보 수정');
-});
+router.post('/signin', user.signin);
 
 module.exports = router;

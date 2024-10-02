@@ -2,7 +2,7 @@ var mysql = require('mysql2');
 var dotenv = require('dotenv');
 dotenv.config();
 
-const pool = mysql.createPool({
+const connection = mysql.createConnection({
   host: process.env.HOST,
   port: process.env.DB_PORT,
   user: process.env.USER,
@@ -12,4 +12,4 @@ const pool = mysql.createPool({
   dateStrings: true
 });
 
-module.exports = pool;
+module.exports = connection;
