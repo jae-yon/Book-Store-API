@@ -1,9 +1,20 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.post('/signup', (req, res) => {
+  res.send('회원가입');
+});
+
+router.post('/signup', (req, res) => {
+  res.send('회원가입');
+});
+
+router.get('/:id', (req, res) => {
+  res.send('회원정보');
+});
+
+router.put('/', (req, res) => {
+  res.send('회원정보 수정');
 });
 
 module.exports = router;
