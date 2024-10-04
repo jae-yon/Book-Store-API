@@ -1,20 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
-router.post('/', (req, res) => {
-  res.send('도서등록');
-});
+var book = require('../controller/bookController');
 
-router.get('/', (req, res) => {
-  res.send('도서조회');
-});
+router.get('/', book.viewAll);
 
-router.get('/:id', (req, res) => {
-  res.send('개별도서조회');
-});
+router.get('/:id', book.viewDetail);
 
-router.put('/', (req, res) => {
-  res.send('도서상품 정보수정');
-});
+router.get('/', book.viewCategory);
 
 module.exports = router;
