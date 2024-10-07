@@ -22,7 +22,12 @@ user.signup = (req, res) => {
       return res.status(StatusCodes.BAD_REQUEST).end();
     }
 
-    res.status(StatusCodes.CREATED).json(results);
+    if (results.length) {
+      res.status(StatusCodes.CREATED).json(results);
+    } else {
+      res.status(StatusCodes.NOT_FOUND).end();
+    }
+    
   });
 }
 

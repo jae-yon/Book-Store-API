@@ -7,6 +7,4 @@ router.get('/', book.viewAll);
 
 router.get('/:id', book.viewDetail);
 
-router.get('/', book.viewCategory);
-
 module.exports = router;

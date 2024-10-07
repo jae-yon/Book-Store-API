@@ -4,16 +4,39 @@ const connection = require('../db');
 const book = {}
 
 book.viewAll = (req, res) => {
-  const sql = `SELECT * FROM books`;
+  const {category_id} =req.query;
 
-  connection.query(sql, function(err, results) {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    }
+  if (category_id) {
+    const sql = `SELECT * FROM books WHERE category_id = ?`;
+  
+    connection.query(sql, category_id, function(err, results) {
+      if (err) {
+        console.log(err);
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      }
 
-    res.status(StatusCodes.OK).json(results);
-  });
+      if (results.length) {
+        res.status(StatusCodes.CREATED).json(results);
+      } else {
+        res.status(StatusCodes.NOT_FOUND).end();
+      }
+    });
+  } else {
+    const sql = `SELECT * FROM books`;
+
+    connection.query(sql, function(err, results) {
+      if (err) {
+        console.log(err);
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      }
+
+      if (results.length) {
+        res.status(StatusCodes.CREATED).json(results);
+      } else {
+        res.status(StatusCodes.NOT_FOUND).end();
+      }
+    });
+  }
 }
 
 book.viewDetail = (req, res) => {
@@ -34,10 +57,6 @@ book.viewDetail = (req, res) => {
       return res.status(StatusCodes.UNAUTHORIZED).end();
     }
   });
-}
-
-book.viewCategory = (req, res) => {
-
 }
 
 module.exports = book;
