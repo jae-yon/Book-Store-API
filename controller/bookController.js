@@ -4,44 +4,39 @@ const connection = require('../db');
 const book = {}
 
 book.viewAll = (req, res) => {
-  const {category_id} =req.query;
+  let {category_id, new_book} =req.query;
 
-  if (category_id) {
-    const sql = `SELECT * FROM books WHERE category_id = ?`;
-  
-    connection.query(sql, category_id, function(err, results) {
-      if (err) {
-        console.log(err);
-        return res.status(StatusCodes.BAD_REQUEST).end();
-      }
+  let val = [];
+  let sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id`;
 
-      if (results.length) {
-        res.status(StatusCodes.CREATED).json(results);
-      } else {
-        res.status(StatusCodes.NOT_FOUND).end();
-      }
-    });
-  } else {
-    const sql = `SELECT * FROM books`;
-
-    connection.query(sql, function(err, results) {
-      if (err) {
-        console.log(err);
-        return res.status(StatusCodes.BAD_REQUEST).end();
-      }
-
-      if (results.length) {
-        res.status(StatusCodes.CREATED).json(results);
-      } else {
-        res.status(StatusCodes.NOT_FOUND).end();
-      }
-    });
+  if (category_id && new_book) {
+    val = [category_id, new_book];
+    sql += ` WHERE books.category_id = ? AND books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
+  } else if (category_id) {
+    val = category_id;
+    sql += ` WHERE books.category_id = ?`;
+  } else if (new_book) {
+    val = new_book;
+    sql += ` WHERE books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
   }
+
+  connection.query(sql, val, function(err, results) {
+    if (err) {
+      console.log(err);
+      return res.status(StatusCodes.BAD_REQUEST).end();
+    }
+
+    if (results.length) {
+      res.status(StatusCodes.CREATED).json(results);
+    } else {
+      res.status(StatusCodes.NOT_FOUND).end();
+    }
+  });
 }
 
 book.viewDetail = (req, res) => {
   const {id} = req.params;
-  const sql = `SELECT * FROM books WHERE id = ?`;
+  const sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id WHERE books.id = ?`;
 
   connection.query(sql, id, function(err, results) {
     if (err) {
