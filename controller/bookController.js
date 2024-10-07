@@ -4,21 +4,25 @@ const connection = require('../db');
 const book = {}
 
 book.viewAll = (req, res) => {
-  let {category_id, new_book} =req.query;
-
+  let {category_id, new_book, limit, current_page} = req.query;
   let val = [];
+
+  let offset = limit * (current_page - 1);
+
   let sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id`;
 
   if (category_id && new_book) {
-    val = [category_id, new_book];
+    val = [parseInt(category_id), new_book];
     sql += ` WHERE books.category_id = ? AND books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
   } else if (category_id) {
-    val = category_id;
+    val = [parseInt(category_id)];
     sql += ` WHERE books.category_id = ?`;
   } else if (new_book) {
-    val = new_book;
+    val = [new_book];
     sql += ` WHERE books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
-  }
+  } 
+
+  sql += ` LIMIT `+ parseInt(limit) +` OFFSET `+ offset;
 
   connection.query(sql, val, function(err, results) {
     if (err) {
