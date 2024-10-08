@@ -23,7 +23,7 @@ book.viewAll = (req, res) => {
     sql += ` WHERE books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
   } 
 
-  sql += ` LIMIT `+ parseInt(limit) +` OFFSET `+ offset;
+  sql += ` LIMIT ${parseInt(limit)} OFFSET ${offset}`;
 
   connection.query(sql, val, function(err, results) {
     if (err) {
