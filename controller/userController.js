@@ -22,10 +22,10 @@ user.signup = (req, res) => {
       return res.status(StatusCodes.BAD_REQUEST).end();
     }
 
-    if (results.length) {
-      res.status(StatusCodes.CREATED).json(results);
+    if (results.affectedRows == 0) {
+      return res.status(StatusCodes.BAD_REQUEST).end();
     } else {
-      res.status(StatusCodes.NOT_FOUND).end();
+      return res.status(StatusCodes.CREATED).json(results);
     }
     
   });
@@ -120,7 +120,7 @@ user.profile = (req, res) => {
       return res.status(StatusCodes.BAD_REQUEST).end();
     }
 
-    res.status(StatusCodes.OK).json(results);
+    return res.status(StatusCodes.OK).json(results);
   });
 }
 

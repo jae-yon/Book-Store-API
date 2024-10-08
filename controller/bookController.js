@@ -9,7 +9,8 @@ book.viewAll = (req, res) => {
 
   let offset = limit * (current_page - 1);
 
-  let sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id`;
+  let sql = `SELECT *, (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes FROM books
+             LEFT JOIN category ON books.category_id = category.category_id`;
 
   if (category_id && new_book) {
     val = [parseInt(category_id), new_book];
@@ -39,10 +40,14 @@ book.viewAll = (req, res) => {
 }
 
 book.viewDetail = (req, res) => {
-  const {id} = req.params;
-  const sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id WHERE books.id = ?`;
+  let {id} = req.params;
+  let {user_id} = req.body;
+  const sql = `SELECT *, 
+	            (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes, 
+	            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${user_id} AND book_id = ${id})) AS liked
+	            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${id}`;
 
-  connection.query(sql, id, function(err, results) {
+  connection.query(sql, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
