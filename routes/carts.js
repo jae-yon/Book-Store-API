@@ -1,16 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
-router.post('/', (req, res) => {
-  res.send('장바구니 담기');
-});
+var cart = require('../controller/cartController');
 
-router.get('/', (req, res) => {
-  res.send('장바구니 조회');
-});
+router.post('/', cart.addToCart);
 
-router.delete('/', (req, res) => {
-  res.send('장바구니 삭제');
-});
+router.get('/', cart.getCartItem);
+
+router.delete('/:id', cart.delCartItem);
 
 module.exports = router;
