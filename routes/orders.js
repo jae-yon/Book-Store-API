@@ -1,16 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
-router.post('/', (req, res) => {
-  res.send('주문 요청');
-});
+var order = require('../controller/orderController');
 
-router.get('/', (req, res) => {
-  res.send('주문서 생성');
-});
+router.post('/', order.doOrder);
 
-router.get('/', (req, res) => {
-  res.send('주문 조회');
-});
+router.get('/', order.getOrders);
+
+router.get('/:id', order.getOrderDetail);
 
 module.exports = router;
