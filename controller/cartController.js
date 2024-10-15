@@ -1,5 +1,8 @@
+const dbconfig = require('../db');
+const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
+
+const conn = mysql.createConnection(dbconfig);
 
 const cart = {}
 
@@ -9,7 +12,7 @@ cart.addToCart = (req, res) => {
   
   const sql = `INSERT INTO cartItems (user_id, book_id, quantity) VALUES (?, ?, ?)`;
 
-  connection.query(sql, val, function(err, results) {
+  conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -37,7 +40,7 @@ cart.getCartItem = (req, res) => {
     sql += ` AND cartItems.id IN (?)`;
   }
 
-  connection.query(sql, val, function(err, results) {
+  conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -51,7 +54,7 @@ cart.delCartItem = (req, res) => {
   const {id} = req.params;
   const sql = `DELETE FROM cartItems WHERE id = ?`;
 
-  connection.query(sql, parseInt(id), function(err, results) {
+  conn.query(sql, parseInt(id), function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();

@@ -1,5 +1,8 @@
+const dbconfig = require('../db');
+const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
+
+const conn = mysql.createConnection(dbconfig);
 
 const like = {}
 
@@ -10,7 +13,7 @@ like.addLike = (req, res) => {
 
   let sql = `INSERT INTO likes (user_id, book_id) VALUES (?, ?)`;
 
-  connection.query(sql, val, function(err, results) {
+  conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -31,7 +34,7 @@ like.delLike = (req, res) => {
 
   let sql = `DELETE FROM likes WHERE user_id = ? AND book_id = ?`;
 
-  connection.query(sql, val, function(err, results) {
+  conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();

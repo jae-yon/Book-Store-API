@@ -1,5 +1,8 @@
+const dbconfig = require('../db');
+const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
+
+const conn = mysql.createConnection(dbconfig);
 
 const category = {}
 
@@ -7,7 +10,7 @@ category.allCategory = (req, res) => {
   
   const sql = `SELECT * FROM category`;
 
-  connection.query(sql, function(err, results) {
+  conn.query(sql, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();

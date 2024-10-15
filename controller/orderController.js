@@ -1,64 +1,37 @@
+const dbconfig = require('../db');
+const mysql = require('mysql2/promise');
 const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
 
 const order = {}
 
-order.doOrder = (req, res) => {
+order.doOrder = async (req, res) => {
   let {items, delivery, total_quantity, total_price, user_id, represent_book_title} = req.body;
+  
+  const conn = await mysql.createConnection(dbconfig);
+
   let sql = `INSERT INTO delivery (address, receiver, contact) VALUES (?, ?, ?)`;
   let val = [delivery.address, delivery.receiver, delivery.contact];
+  let [results] = await conn.execute(sql, val);
 
-  let delivery_id = 0;
-  let order_id = 0;
-  // insert into delivery
-  connection.query(sql, val, function(err, results) {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    }
+  let delivery_id = results.insertId;
 
-    delivery_id= results.insertId;
+  sql = `INSERT INTO orders (book_title, total_quantity, total_price, user_id, delivery_id)
+         VALUES (?, ?, ?, ?, ?)`;
+  val = [represent_book_title, total_quantity, total_price, user_id, delivery_id];
+  [results] = await conn.execute(sql, val);
 
-    res.status(StatusCodes.CREATED).json(results);
+  let order_id = results.insertId;
 
-  });
-  // insert into orders
-  // sql = `INSERT INTO orders (book_title, total_quantity, total_price, user_id, delivery_id)
-  //        VALUES (?, ?, ?, ?, ?)`;
+  sql = `INSERT INTO orderedBook (order_id, book_id, quantity) VALUES ?`;
   
-  // val = [represent_book_title, total_quantity, total_price, user_id, delivery_id];
+  val = [];
+  items.forEach((item) => {
+    val.push([order_id, item.book_id, item.quantity]);
+  })
 
-  // connection.query(sql, val, function(err, results) {
-  //   if (err) {
-  //     console.log(err);
-  //     return res.status(StatusCodes.BAD_REQUEST).end();
-  //   }
+  results = await conn.query(sql, [val]);
 
-    // order_id = results.insertId;
-
-  //   res.status(StatusCodes.CREATED).json(results);
-
-  // });
-
-  // insert into orderedBook
-  // val = [];
-  
-  // sql = `INSERT INTO orderedBook (order_id, book_id, quantity) VALUES ?`;
-  
-  // items.forEach((item) => {
-  //   val.push([order_id, item.book_id, item.quantity]);
-  // })
-  // console.log(val);
-  
-  // connection.query(sql, [val], function(err, results) {
-  //   if (err) {
-  //     console.log(err);
-  //     return res.status(StatusCodes.BAD_REQUEST).end();
-  //   }
-
-  //   res.status(StatusCodes.CREATED).json(results);
-
-  // });
+  return res.status(StatusCodes.CREATED).json(results[0]);
 }
 
 order.getOrders = (req, res) => {

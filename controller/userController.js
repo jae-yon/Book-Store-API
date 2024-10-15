@@ -1,9 +1,13 @@
-const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
-const jwt = require('jsonwebtoken');
+const mysql = require('mysql2');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
+const dbconfig = require('../db');
+const jwt = require('jsonwebtoken');
+const {StatusCodes} = require('http-status-codes');
+
 dotenv.config();
+
+const conn = mysql.createConnection(dbconfig);
 
 const user = {}
 
@@ -16,7 +20,7 @@ user.signup = (req, res) => {
 
   const val = [email, hash, salt];
 
-  connection.query(sql, val, (err, results) => {
+  conn.query(sql, val, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -35,7 +39,7 @@ user.signin = (req, res) => {
   const {email, password} = req.body;
   const sql = 'SELECT * FROM users WHERE email = ?';
 
-  connection.query(sql, email, (err, results) => {
+  conn.query(sql, email, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -71,7 +75,7 @@ user.checkEmail = (req, res) => {
   const {email} = req.body;
   const sql = `SELECT * FROM users WHERE email = ?`;
 
-  connection.query(sql, email, (err, results) => {
+  conn.query(sql, email, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -96,7 +100,7 @@ user.resetInfo = (req, res) => {
   
   const val = [email, hash, salt];
   
-  connection.query(sql, val, (err, results) => {
+  conn.query(sql, val, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -114,7 +118,7 @@ user.profile = (req, res) => {
   const {id} = req.params;
   const sql = `SELECT * FROM users WHERE id = ?`;
 
-  connection.query(sql, id, (err, results) => {
+  conn.query(sql, id, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();

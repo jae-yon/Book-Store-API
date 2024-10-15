@@ -1,5 +1,8 @@
+const dbconfig = require('../db');
+const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
-const connection = require('../db');
+
+const conn = mysql.createConnection(dbconfig);
 
 const book = {}
 
@@ -25,7 +28,7 @@ book.viewAll = (req, res) => {
 
   sql += ` LIMIT ${parseInt(limit)} OFFSET ${offset}`;
 
-  connection.query(sql, val, function(err, results) {
+  conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -47,7 +50,7 @@ book.viewDetail = (req, res) => {
 	            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${user_id} AND book_id = ${id})) AS liked
 	            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${id}`;
 
-  connection.query(sql, function(err, results) {
+  conn.query(sql, function(err, results) {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
