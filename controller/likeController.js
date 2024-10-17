@@ -1,47 +1,91 @@
-const dbconfig = require('../db');
 const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
 
+/* token */
+const jwt = require('jsonwebtoken');
+const ensureAuthoriation = require('../auth/auth');
+
+const dbconfig = require('../db');
 const conn = mysql.createConnection(dbconfig);
+
+// const authorizeToken = (req) => {
+//   try {
+//     let receivedToken = req.headers["authorization"];
+//     let verifiedToken = jwt.verify(receivedToken, process.env.PRIVATE_KEY);
+
+//     return verifiedToken.id;
+//   } catch (error) {
+//     console.log(error.name);
+//     console.log(error.message);
+//     return error;
+//   }
+// }
 
 const like = {}
 
 like.addLike = (req, res) => {
-  let {id} = req.params;
-  let {user_id} = req.body;
-  let val = [user_id, parseInt(id)];
+  let authorization = ensureAuthoriation(req, res);
+  let book_id = req.params.id;
 
-  let sql = `INSERT INTO likes (user_id, book_id) VALUES (?, ?)`;
+  if (authorization instanceof jwt.TokenExpiredError) {
 
-  conn.query(sql, val, function(err, results) {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    }
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
 
-    if (results.affectedRows == 0) {
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    } else {
-      return res.status(StatusCodes.CREATED).json(results);
-    }
-  });
+  } else if (authorization instanceof jwt.JsonWebTokenError) {
+
+    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+
+  } else {
+
+    let val = [authorization, book_id];
+
+    let sql = `INSERT INTO likes (user_id, book_id) VALUES (?, ?)`;
+
+    conn.query(sql, val, function(err, results) {
+      if (err) {
+        console.log(err);
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      }
+
+      if (results.affectedRows == 0) {
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      } else {
+        return res.status(StatusCodes.CREATED).json(results);
+      }
+    });
+
+  }
 }
 
 like.delLike = (req, res) => {
-  let {id} = req.params;
-  let {user_id} = req.body;
-  let val = [user_id, parseInt(id)];
+  let authorization = ensureAuthoriation(req, res);
+  let book_id = req.params.id;
 
-  let sql = `DELETE FROM likes WHERE user_id = ? AND book_id = ?`;
+  if (authorization instanceof jwt.TokenExpiredError) {
 
-  conn.query(sql, val, function(err, results) {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    }
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
 
-    return res.status(StatusCodes.OK).json(results);
-  });
+  } else if (authorization instanceof jwt.JsonWebTokenError) {
+
+    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+
+  } else {
+
+    let val = [authorization, book_id];
+
+    let sql = `DELETE FROM likes WHERE user_id = ? AND book_id = ?`;
+
+    conn.query(sql, val, function(err, results) {
+      if (err) {
+        console.log(err);
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      }
+
+      return res.status(StatusCodes.OK).json(results);
+    });
+    
+  }
+  
 }
 
 module.exports = like;

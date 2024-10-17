@@ -52,12 +52,13 @@ user.signin = (req, res) => {
     if (userInfo && userInfo.password == hash) {
       const token = jwt.sign(
         {
+          id: userInfo.id,
           email: userInfo.email
         },
         process.env.PRIVATE_KEY, 
         {
-            expiresIn: '5m',
-            issuer: 'tester'
+            expiresIn: '1m',
+            issuer: 'admin'
         }
       );
 
