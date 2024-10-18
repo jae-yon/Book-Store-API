@@ -1,7 +1,10 @@
-const dbconfig = require('../db');
 const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
 
+const jwt = require('jsonwebtoken');
+const ensureAuthoriation = require('../auth/auth');
+
+const dbconfig = require('../db');
 const conn = mysql.createConnection(dbconfig);
 
 const book = {}
@@ -43,12 +46,26 @@ book.viewAll = (req, res) => {
 }
 
 book.viewDetail = (req, res) => {
-  let {id} = req.params;
-  let {user_id} = req.body;
-  const sql = `SELECT *, 
+  let bookId = req.params.id;
+
+  const authorization = ensureAuthoriation(req, res);
+  
+  if (authorization instanceof jwt.TokenExpiredError) {
+
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
+
+  } else if (authorization instanceof jwt.JsonWebTokenError) {
+    
+    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+
+  } else if (authorization instanceof ReferenceError) {
+    const sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
+  } else {
+    const sql = `SELECT *, 
 	            (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes, 
-	            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${user_id} AND book_id = ${id})) AS liked
-	            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${id}`;
+	            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${authorization} AND book_id = ${bookId})) AS liked
+	            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
+  }
 
   conn.query(sql, function(err, results) {
     if (err) {
@@ -64,6 +81,7 @@ book.viewDetail = (req, res) => {
       return res.status(StatusCodes.UNAUTHORIZED).end();
     }
   });
+  
 }
 
 module.exports = book;

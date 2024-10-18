@@ -1,25 +1,11 @@
 const mysql = require('mysql2');
 const {StatusCodes} = require('http-status-codes');
-
-/* token */
+/* jwt */
 const jwt = require('jsonwebtoken');
 const ensureAuthoriation = require('../auth/auth');
-
+/* db */
 const dbconfig = require('../db');
 const conn = mysql.createConnection(dbconfig);
-
-// const authorizeToken = (req) => {
-//   try {
-//     let receivedToken = req.headers["authorization"];
-//     let verifiedToken = jwt.verify(receivedToken, process.env.PRIVATE_KEY);
-
-//     return verifiedToken.id;
-//   } catch (error) {
-//     console.log(error.name);
-//     console.log(error.message);
-//     return error;
-//   }
-// }
 
 const like = {}
 

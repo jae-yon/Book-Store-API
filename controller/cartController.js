@@ -7,19 +7,6 @@ const ensureAuthoriation = require('../auth/auth');
 const dbconfig = require('../db');
 const conn = mysql.createConnection(dbconfig);
 
-// const authorizeToken = (req) => {
-//   try {
-//     let receivedToken = req.headers["authorization"];
-//     let verifiedToken = jwt.verify(receivedToken, process.env.PRIVATE_KEY);
-
-//     return verifiedToken.id;
-//   } catch (error) {
-//     console.log(error.name);
-//     console.log(error.message);
-//     return error;
-//   }
-// }
-
 const cart = {}
 
 cart.addToCart = (req, res) => {
@@ -92,17 +79,29 @@ cart.getCartItem = (req, res) => {
 }
 
 cart.delCartItem = (req, res) => {
-  const cart_item_id = req.params.id;
+  const cartItemId = req.params.id;
   const sql = `DELETE FROM cartItems WHERE id = ?`;
+  
+  const authorization = ensureAuthoriation(req, res);
 
-  conn.query(sql, parseInt(cart_item_id), function(err, results) {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end();
-    }
+  if (authorization instanceof jwt.TokenExpiredError) {
 
-    res.status(StatusCodes.OK).json(results);
-  });
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
+
+  } else if (authorization instanceof jwt.JsonWebTokenError) {
+    
+    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+
+  } else {
+    conn.query(sql, parseInt(cartItemId), function(err, results) {
+      if (err) {
+        console.log(err);
+        return res.status(StatusCodes.BAD_REQUEST).end();
+      }
+  
+      res.status(StatusCodes.OK).json(results);
+    });
+  }
 }
 
 module.exports = cart;

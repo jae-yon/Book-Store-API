@@ -1,12 +1,13 @@
 const mysql = require('mysql2');
-const crypto = require('crypto');
-const dotenv = require('dotenv');
-const dbconfig = require('../db');
-const jwt = require('jsonwebtoken');
 const {StatusCodes} = require('http-status-codes');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
+/* env */
+const dotenv = require('dotenv');
 dotenv.config();
-
+/* db */
+const dbconfig = require('../db');
 const conn = mysql.createConnection(dbconfig);
 
 const user = {}
@@ -57,7 +58,7 @@ user.signin = (req, res) => {
         },
         process.env.PRIVATE_KEY, 
         {
-            expiresIn: '1m',
+            expiresIn: '5m',
             issuer: 'admin'
         }
       );
