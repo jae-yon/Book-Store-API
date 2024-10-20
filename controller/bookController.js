@@ -15,7 +15,7 @@ book.viewAll = (req, res) => {
 
   let offset = limit * (current_page - 1);
 
-  let sql = `SELECT *, (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes FROM books
+  let sql = `SELECT SQL_CALC_FOUND_ROWS *, (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes FROM books
              LEFT JOIN category ON books.category_id = category.category_id`;
 
   if (category_id && new_book) {
@@ -31,6 +31,8 @@ book.viewAll = (req, res) => {
 
   sql += ` LIMIT ${parseInt(limit)} OFFSET ${offset}`;
 
+  let allBooks = {};
+
   conn.query(sql, val, function(err, results) {
     if (err) {
       console.log(err);
@@ -38,15 +40,45 @@ book.viewAll = (req, res) => {
     }
 
     if (results.length) {
-      res.status(StatusCodes.CREATED).json(results);
+      /* naming convention : snake case > camel case */
+      results.map((result) => {
+        result.createdAt = result.created_at;
+        result.categoryId = result.category_id;
+        result.publishedAt = result.published_at;
+        result.categoryName = result.category_name;
+        delete result.created_at;
+        delete result.category_id;
+        delete result.published_at;
+        delete result.category_name;
+      });
+      allBooks.books = results;
     } else {
-      res.status(StatusCodes.NOT_FOUND).end();
+      return res.status(StatusCodes.NOT_FOUND).end();
     }
+  });
+
+  sql = `SELECT found_rows()`;
+
+  conn.query(sql, val, function(err, results) {
+    if (err) {
+      console.log(err);
+      return res.status(StatusCodes.BAD_REQUEST).end();
+    }
+    
+    let pagination = {};
+    pagination.currentPage = parseInt(current_page);
+    pagination.totalCount =  results[0]["found_rows()"];
+
+    allBooks.pagination = pagination;
+
+    return res.status(StatusCodes.OK).json(allBooks);
   });
 }
 
 book.viewDetail = (req, res) => {
   let bookId = req.params.id;
+
+  let sql;
 
   const authorization = ensureAuthoriation(req, res);
   
@@ -59,12 +91,14 @@ book.viewDetail = (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
 
   } else if (authorization instanceof ReferenceError) {
-    const sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
+
+    sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
+    
   } else {
-    const sql = `SELECT *, 
-	            (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes, 
-	            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${authorization} AND book_id = ${bookId})) AS liked
-	            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
+    sql = `SELECT *, 
+            (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes, 
+            (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${authorization} AND book_id = ${bookId})) AS liked
+            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
   }
 
   conn.query(sql, function(err, results) {
@@ -72,6 +106,18 @@ book.viewDetail = (req, res) => {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
     }
+
+    /* naming convention : snake case > camel case */
+    results.map((result) => {
+      result.createdAt = result.created_at;
+      result.categoryId = result.category_id;
+      result.publishedAt = result.published_at;
+      result.categoryName = result.category_name;
+      delete result.created_at;
+      delete result.category_id;
+      delete result.published_at;
+      delete result.category_name;
+    });
 
     const bookInfo = results[0];
 

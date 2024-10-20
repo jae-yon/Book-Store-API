@@ -69,7 +69,7 @@ order.getOrders = async (req, res) => {
 
   } else {
     const sql = `SELECT orders.id, book_title, total_quantity, total_price, created_at, address, receiver, contact
-                FROM orders LEFT JOIN delivery ON orders.delivery_id = delivery.id`;
+                FROM orders LEFT JOIN delivery ON orders.delivery_id = delivery.id WHERE user_id = ${authorization}`;
     const [rows, fields] = await conn.query(sql);
     return res.status(StatusCodes.OK).json(rows);
   }

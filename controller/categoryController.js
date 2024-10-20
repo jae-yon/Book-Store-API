@@ -16,6 +16,13 @@ category.allCategory = (req, res) => {
       return res.status(StatusCodes.BAD_REQUEST).end();
     }
 
+    results.map((result) => {
+      result.categoryId = result.category_id;
+      result.categoryName = result.category_name;
+      delete result.category_id;
+      delete result.category_name;
+    });
+
     if (results.length) {
       res.status(StatusCodes.CREATED).json(results);
     } else {
