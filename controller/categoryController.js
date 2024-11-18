@@ -8,7 +8,7 @@ const category = {}
 
 category.allCategory = (req, res) => {
   
-  const sql = `SELECT * FROM category`;
+  let sql = "SELECT category_id AS id, category_name AS name FROM category";
 
   conn.query(sql, function(err, results) {
     if (err) {

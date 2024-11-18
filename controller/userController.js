@@ -58,15 +58,15 @@ user.signin = (req, res) => {
         },
         process.env.PRIVATE_KEY, 
         {
-            expiresIn: '5m',
+            expiresIn: "1000000000m",
             issuer: 'admin'
         }
       );
 
-      res.cookie('token', token, { httpOnly : true });
+      res.cookie('Authorization', token, { httpOnly : true });
       console.log(token);
 
-      return res.status(StatusCodes.OK).json(results);
+      return res.status(StatusCodes.OK).json({ ...results[0], token: token });
     } else {
       return res.status(StatusCodes.UNAUTHORIZED).end();
     }
@@ -95,12 +95,15 @@ user.checkEmail = (req, res) => {
 
 user.resetInfo = (req, res) => {
   const {email, password} = req.body;
-  const sql = `UPDATE usese SET password = ?, salt = ? WHERE email = ?`;
-  
+  const sql = `UPDATE users SET password=?, salt=? WHERE email=?`;
+
+  console.log(email, password);
+
+  // 암호화된 비밀번호와 salt 값을 같이 DB에 저장
   const salt = crypto.randomBytes(10).toString('base64');
   const hash = crypto.pbkdf2Sync(password, salt, 10000, 10, 'sha512').toString('base64');
   
-  const val = [email, hash, salt];
+  const val = [hash, salt, email];
   
   conn.query(sql, val, (err, results) => {
     if (err) {

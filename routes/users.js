@@ -5,12 +5,12 @@ const user = require('../controller/userController');
 
 router.get('/:id', user.profile);
 
-router.post('/signup', user.signup);
+router.post('/join', user.signup);
 
-router.post('/signin', user.signin);
+router.post('/login', user.signin);
 
-router.post('/edit', user.checkEmail);
+router.post('/reset', user.checkEmail);
 
-router.put('/edit', user.resetInfo);
+router.put('/reset', user.resetInfo);
 
 module.exports = router;

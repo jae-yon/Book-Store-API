@@ -10,28 +10,28 @@ const conn = mysql.createConnection(dbconfig);
 const book = {}
 
 book.viewAll = (req, res) => {
-  let {category_id, new_book, limit, current_page} = req.query;
-  let val = [];
-
-  let offset = limit * (current_page - 1);
-
+  let allBooks = {};
+  console.log(req.query);
+  let {category_id, news, currentPage, limit} = req.query;
+  
+  let offset = limit * (currentPage - 1);
+  
   let sql = `SELECT SQL_CALC_FOUND_ROWS *, (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes FROM books
-             LEFT JOIN category ON books.category_id = category.category_id`;
+  LEFT JOIN category ON books.category_id = category.category_id`;
 
-  if (category_id && new_book) {
-    val = [parseInt(category_id), new_book];
+  let val = [];
+  if (category_id && news) {
+    val = [parseInt(category_id), news];
     sql += ` WHERE books.category_id = ? AND books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
   } else if (category_id) {
     val = [parseInt(category_id)];
     sql += ` WHERE books.category_id = ?`;
-  } else if (new_book) {
-    val = [new_book];
+  } else if (news) {
+    val = [news];
     sql += ` WHERE books.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`;
   } 
 
   sql += ` LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-
-  let allBooks = {};
 
   conn.query(sql, val, function(err, results) {
     if (err) {
@@ -66,14 +66,16 @@ book.viewAll = (req, res) => {
     }
     
     let pagination = {};
-    pagination.currentPage = parseInt(current_page);
+    pagination.currentPage = parseInt(currentPage);
     pagination.totalCount =  results[0]["found_rows()"];
 
     allBooks.pagination = pagination;
 
     return res.status(StatusCodes.OK).json(allBooks);
   });
+
 }
+  
 
 book.viewDetail = (req, res) => {
   let bookId = req.params.id;
