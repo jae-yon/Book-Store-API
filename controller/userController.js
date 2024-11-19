@@ -54,7 +54,7 @@ user.signin = (req, res) => {
       const token = jwt.sign(
         {
           id: userInfo.id,
-          email: userInfo.email
+          email: userInfo.email,
         },
         process.env.PRIVATE_KEY, 
         {
@@ -63,8 +63,7 @@ user.signin = (req, res) => {
         }
       );
 
-      res.cookie('Authorization', token, { httpOnly : true });
-      console.log(token);
+      res.cookie("authorization", token, { httpOnly : true });
 
       return res.status(StatusCodes.OK).json({ ...results[0], token: token });
     } else {

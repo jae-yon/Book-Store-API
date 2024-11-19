@@ -7,6 +7,8 @@ const ensureAuthoriation = (req, res) => {
   try {
     let receivedToken = req.headers["authorization"];
 
+    console.log(`Token: ${receivedToken}`);
+
     if (receivedToken) {
       let verifiedToken = jwt.verify(receivedToken, process.env.PRIVATE_KEY);
       return verifiedToken.id;

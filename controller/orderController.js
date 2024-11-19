@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const {StatusCodes} = require('http-status-codes');
 
 const jwt = require('jsonwebtoken');
@@ -11,10 +11,8 @@ const order = {}
 order.doOrder = async (req, res) => {
   const conn = await mysql.createConnection(dbconfig);
 
-  const {items, delivery, total_quantity, total_price, represent_book_title} = req.body;
-  
   const authorization = ensureAuthoriation(req, res);
-
+  
   if (authorization instanceof jwt.TokenExpiredError) {
 
     res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
@@ -24,6 +22,9 @@ order.doOrder = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
 
   } else {
+
+    const {items, delivery, totalQuantity, totalPrice, firstBookTitle} = req.body;
+
     // 배송지 정보
     let sql = `INSERT INTO delivery (address, receiver, contact) VALUES (?, ?, ?)`;
     let val = [delivery.address, delivery.receiver, delivery.contact];
@@ -33,7 +34,7 @@ order.doOrder = async (req, res) => {
     // 회원 주문 정보
     sql = `INSERT INTO orders (book_title, total_quantity, total_price, user_id, delivery_id)
           VALUES (?, ?, ?, ?, ?)`;
-    val = [represent_book_title, total_quantity, total_price, authorization, delivery_id];
+    val = [firstBookTitle, totalQuantity, totalPrice, authorization, delivery_id];
     [results] = await conn.execute(sql, val);
     // 선택 주문된 장바구니 정보 조회
     sql = `SELECT book_id, quantity FROM cartItems WHERE id IN (?)`;
@@ -71,7 +72,22 @@ order.getOrders = async (req, res) => {
     const sql = `SELECT orders.id, book_title, total_quantity, total_price, created_at, address, receiver, contact
                 FROM orders LEFT JOIN delivery ON orders.delivery_id = delivery.id WHERE user_id = ${authorization}`;
     const [rows, fields] = await conn.query(sql);
-    return res.status(StatusCodes.OK).json(rows);
+
+    if (rows.length) {
+      rows.map((row) => {
+          row.createdAt = row.created_at;
+          row.bookTitle = row.book_title;
+          row.totalPrice = row.total_price;
+          row.totalQuantity = row.total_quantity;
+          delete row.created_at;
+          delete row.book_title;
+          delete row.total_price;
+          delete row.total_quantity;
+      });
+      return res.status(StatusCodes.OK).json(rows);
+    } else {
+      return res.status(StatusCodes.NOT_FOUND).end();
+    }
   }
 }
 

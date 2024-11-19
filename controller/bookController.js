@@ -86,17 +86,23 @@ book.viewDetail = (req, res) => {
   
   if (authorization instanceof jwt.TokenExpiredError) {
 
-    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
+    res.status(StatusCodes.UNAUTHORIZED).json({ 
+      "message" : "로그인 세션이 만료되었습니다. 다시 로그인 하세요."
+    });
 
   } else if (authorization instanceof jwt.JsonWebTokenError) {
     
-    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+    res.status(StatusCodes.BAD_REQUEST).json({
+      "message" : "잘못된 토큰입니다."
+    });
 
   } else if (authorization instanceof ReferenceError) {
-
-    sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
-    
+    // 비로그인 상태
+    sql = `SELECT *, 
+            (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes 
+            FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id = ${bookId}`;
   } else {
+    // 로그인 상태
     sql = `SELECT *, 
             (SELECT count(*) FROM likes WHERE book_id = books.id) AS likes, 
             (SELECT EXISTS (SELECT * FROM likes WHERE user_id= ${authorization} AND book_id = ${bookId})) AS liked
@@ -112,11 +118,9 @@ book.viewDetail = (req, res) => {
     /* naming convention : snake case > camel case */
     results.map((result) => {
       result.createdAt = result.created_at;
-      result.categoryId = result.category_id;
       result.publishedAt = result.published_at;
       result.categoryName = result.category_name;
       delete result.created_at;
-      delete result.category_id;
       delete result.published_at;
       delete result.category_name;
     });

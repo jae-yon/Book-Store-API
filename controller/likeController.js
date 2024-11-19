@@ -15,11 +15,15 @@ like.addLike = (req, res) => {
 
   if (authorization instanceof jwt.TokenExpiredError) {
 
-    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
+    return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Token was expired" });
 
   } else if (authorization instanceof jwt.JsonWebTokenError) {
 
-    res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+  
+  } else if (authorization instanceof ReferenceError) {
+
+    return res.status(StatusCodes.UNAUTHORIZED).end();
 
   } else {
 
@@ -54,6 +58,10 @@ like.delLike = (req, res) => {
   } else if (authorization instanceof jwt.JsonWebTokenError) {
 
     res.status(StatusCodes.BAD_REQUEST).json({ message: "Wrong token" });
+  
+  } else if (authorization instanceof ReferenceError) {
+
+    return res.status(StatusCodes.UNAUTHORIZED).end();
 
   } else {
 
